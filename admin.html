@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html>
+<head><title>Admin Panel</title></head>
+<body>
+  <h2>Create User</h2>
+  <input id="newEmail" placeholder="New User Email"><br>
+  <input id="newPassword" type="password" placeholder="New Password"><br>
+  <button onclick="createUser()">Create</button>
+
+  <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-auth-compat.js"></script>
+  <script src="firebaseConfig.js"></script>
+  <script>
+    function createUser() {
+      const email = document.getElementById("newEmail").value;
+      const password = document.getElementById("newPassword").value;
+      firebase.auth().createUserWithEmailAndPassword(email, password)
+        .then(() => alert("User created"))
+        .catch(err => alert(err.message));
+    }
+  </script>
+</body>
+</html>

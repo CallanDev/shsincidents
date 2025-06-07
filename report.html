@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>SHS-Incidents Report</title>
+  <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-database-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-storage-compat.js"></script>
+  <script src="firebaseConfig.js"></script>
+</head>
+<body>
+  <h2>New Incident Report</h2>
+  <label>Manager:</label><input id="manager"><br>
+  <label>Officer:</label><input id="officer"><br>
+  <label>Employee:</label><input id="employee"><br>
+
+  <h3>Statement</h3>
+  <textarea id="statement" rows="6" cols="40"></textarea><br>
+
+  <button onclick="addEvidence()">Add Evidence</button>
+  <div id="evidenceSection"></div>
+
+  <button onclick="submitReport()">Submit Report</button>
+
+  <!-- Evidence Popup -->
+  <div id="popup" style="display:none;">
+    <textarea id="evidenceText" placeholder="Text evidence"></textarea><br>
+    <input type="file" id="evidenceFile"><br>
+    <button onclick="saveEvidence()">Save</button>
+    <button onclick="closePopup()">Close</button>
+  </div>
+
+  <script>
+    let evidenceList = [];
+
+    function addEvidence() {
+      document.getElementById("popup").style.display = "block";
+    }
+
+    function closePopup() {
+      document.getElementById("popup").style.display = "none";
+    }
+
+    async function saveEvidence() {
+      const text = document.getElementById("evidenceText").value;
+      const fileInput = document.getElementById("evidenceFile");
+      const file = fileInput.files[0];
+      let fileUrl = null;
+
+      if (file) {
+        const ref = firebase.storage().ref('evidence/' + file.name);
+        await ref.put(file);
+        fileUrl = await ref.getDownloadURL();
+      }
+
+      const timestamp = new Date().toISOString();
+      evidenceList.push({ text, fileUrl, timestamp });
+
+      const div = document.createElement("div");
+      div.innerHTML = `<p>${text} (${timestamp})</p>${fileUrl ? `<a href="${fileUrl}" target="_blank">View File</a>` : ''}`;
+      document.getElementById("evidenceSection").appendChild(div);
+
+      closePopup();
+    }
+
+    function submitReport() {
+      const manager = document.getElementById("manager").value;
+      const officer = document.getElementById("officer").value;
+      const employee = document.getElementById("employee").value;
+      const statement = document.getElementById("statement").value;
+      const timestamp = new Date().toISOString();
+
+      firebase.database().ref("reports").push({
+        manager,
+        officer,
+        employee,
+        statement,
+        evidence: evidenceList,
+        timestamp
+      }).then(() => alert("Report submitted"));
+    }
+  </script>
+</body>
+</html>
